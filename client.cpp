@@ -11,7 +11,7 @@
 using namespace std;
 
 #define PORT 1010
-#define IP "192.168.1.9" //192.168.1.9    192.168.1.112
+#define IP "192.168.1.112" //192.168.1.9    192.168.1.112
 
 SOCKET s;
 char buf[1024];
@@ -139,10 +139,10 @@ int main() {
     */
     
     // Nhan file tu server gui toi   
-    receiveFile(s);
+    //receiveFile(s);
     
     // Gui file toi server
-    sendFile(s, "t1.txt");
+    sendFile(s, "i2.jpg");
     
     //Gui du lieu
     while(1) {
