@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include<sys/types.h>
 #include <iostream>
+#include <Windows.h>
 
 using namespace std;
 
@@ -18,6 +19,14 @@ using namespace std;
 
 SOCKET s1, s2, client, androidDevice;
 char buf[1024];
+
+void gotoxy(int x, int y)
+{
+    COORD coord;
+    coord.X = x;
+    coord.Y = y;
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
 
 void receiveMessage(SOCKET s) {
     while(1) { 
@@ -89,9 +98,12 @@ void sendFile(SOCKET s, const char *fileName, int offset) {
     fclose(fp);
 }
 
-void receiveFile(SOCKET soc) {
+void receiveFile(SOCKET soc, int offset) {
     char fileName[256];
     char charFileSize[256];
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO cursorInfo;
+    GetConsoleScreenBufferInfo(hConsole, &cursorInfo);
     
     strcpy(fileName, "fromserver_");
     strcpy(charFileSize, "0");
@@ -128,11 +140,16 @@ void receiveFile(SOCKET soc) {
      printf("Tao file bi loi.\n");
     }
     
+    int xCoord = cursorInfo.dwCursorPosition.X;
+    int yCoord = cursorInfo.dwCursorPosition.Y;
+    
     int bytesReceived;
     // Nhan du lieu
     while(bytesReceived = recv(soc, buf, 1024, 0))
     {     
-        fwrite(buf, 1,bytesReceived-1,fp);       
+        fwrite(buf, 1,bytesReceived-offset,fp);
+        gotoxy(xCoord, yCoord);
+        cout << "Received " << fileName << ": " << (ftell(fp) * 100 / fileSize) << "%" << endl;
         if (fileSize == ftell(fp)) // Kiem tra xem da nhan du du lieu hay chua
             break;
     }
@@ -154,6 +171,9 @@ void *thread1_function(void *arg) {
     // Gui file den android device
     sendFile(androidDevice, "Mau_bao_cao.doc", 0);
     
+    // Nhan file tu client
+    //receiveFile(androidDevice, 0);
+    
     // Nhan thong diep tu Android Device
     receiveMessage(androidDevice);
     
@@ -171,10 +191,10 @@ void *thread2_function(void *arg) {
     printf("Accepted client: %d\n", client);
     
     // Gui file den Cilent
-    sendFile(client, "i1.png", 1);
+    //sendFile(client, "i1.png", 1);
     
     // Nhan file tu client
-    receiveFile(client);
+    receiveFile(client, 1);
     
     // Nhan thong diep tu client
     receiveMessage(client);    
